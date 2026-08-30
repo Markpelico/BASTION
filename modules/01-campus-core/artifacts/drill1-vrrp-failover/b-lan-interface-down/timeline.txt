@@ -1,0 +1,11 @@
+[04:32:10.764] scenario b-lan-interface-down: pre state
+[04:32:11.102] starting capture on h1 eth1 (vrrp, arp, icmp)
+[04:32:13.108] starting 40s ping h1 to h2 at 5 packets per second
+[04:32:23.114] FAILURE: docker exec clab-bastion-campus-r1 ip link set eth1 down
+[04:32:35.299] post failure state: r2 role
+[04:32:35.488] RECOVERY: docker exec clab-bastion-campus-r1 ip link set eth1 up
+[04:32:53.288] ping finished
+--- 10.40.0.100 ping statistics ---
+197 packets transmitted, 197 received, 0% packet loss, time 39942ms
+rtt min/avg/max/mdev = 0.059/0.086/0.152/0.011 ms
+[04:32:56.519] scenario b-lan-interface-down done

@@ -1,0 +1,39 @@
+
+ Virtual Router ID                       10                  
+ Protocol Version                        3                   
+ Autoconfigured                          No                  
+ Shutdown                                No                  
+ Interface                               eth1                
+ VRRP interface (v4)                     vrrp4-10            
+ VRRP interface (v6)                     None                
+ Primary IP (v4)                         10.10.0.11          
+ Primary IP (v6)                         ::                  
+ Virtual MAC (v4)                        00:00:5e:00:01:0a   
+ Virtual MAC (v6)                        00:00:5e:00:02:0a   
+ Status (v4)                             Master              
+ Status (v6)                             Initialize          
+ Priority                                200                 
+ Effective Priority (v4)                 200                 
+ Effective Priority (v6)                 200                 
+ Preempt Mode                            Yes                 
+ Accept Mode                             Yes                 
+ Checksum with IPv4 Pseudoheader         Yes                 
+ Advertisement Interval                  1000 ms             
+ Master Advertisement Interval (v4) Rx   1000 ms (stale)     
+ Master Advertisement Interval (v6) Rx   0 ms (stale)        
+ Advertisements Tx (v4)                  570                 
+ Advertisements Tx (v6)                  0                   
+ Advertisements Rx (v4)                  20                  
+ Advertisements Rx (v6)                  0                   
+ Gratuitous ARP Tx (v4)                  1                   
+ Neigh. Adverts Tx (v6)                  0                   
+ State transitions (v4)                  2                   
+ State transitions (v6)                  0                   
+ Skew Time (v4)                          210 ms              
+ Skew Time (v6)                          0 ms                
+ Master Down Interval (v4)               3210 ms             
+ Master Down Interval (v6)               0 ms                
+ IPv4 Addresses                          1                   
+ ..................................      10.10.0.1           
+ IPv6 Addresses                          0                   
+

@@ -1,0 +1,11 @@
+[04:37:42.249] pre state: r1 routes and neighbors
+[04:37:42.627] starting captures (ospf and icmp): LAN1 via r1 eth1, and the r2 r3 link
+[04:37:44.632] starting 45s ping h1 to h2 at 5 packets per second
+[04:37:59.637] FAILURE: administratively down r1 eth2 (the preferred cost 10 uplink)
+[04:38:09.808] post failure: r1 routes and neighbors
+[04:38:10.160] RECOVERY: no shutdown on r1 eth2
+[04:38:29.796] ping finished
+[04:38:35.190] done: artifacts in /mnt/c/Users/Admin/Desktop/BASTION/modules/01-campus-core/artifacts/drill2-ospf-reconvergence
+--- 10.40.0.100 ping statistics ---
+221 packets transmitted, 221 received, 0% packet loss, time 44885ms
+rtt min/avg/max/mdev = 0.053/0.086/0.155/0.012 ms

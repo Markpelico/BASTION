@@ -42,7 +42,8 @@ def render_module(module: str) -> list[pathlib.Path]:
         outdir.mkdir(parents=True, exist_ok=True)
         ctx = {"hostname": name, "node": node, "lab": data}
         for template, outname in (("frr/frr.conf.j2", "frr.conf"),
-                                  ("frr/daemons.j2", "daemons")):
+                                  ("frr/daemons.j2", "daemons"),
+                                  ("frr/vtysh.conf.j2", "vtysh.conf")):
             text = env.get_template(template).render(**ctx)
             out = outdir / outname
             out.write_text(text, newline="\n")
