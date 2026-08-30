@@ -2,6 +2,8 @@
 
 [![ci](https://github.com/Markpelico/BASTION/actions/workflows/ci.yml/badge.svg)](https://github.com/Markpelico/BASTION/actions/workflows/ci.yml)
 
+![BASTION: five network topologies covering campus routing, WAN edge, data center fabric, boundary security, and load balancing, all generated from code and tested in CI](docs/bastion-topology.png)
+
 A hands-on network engineering lab, built the way a software engineer builds
 things: every topology is code, every router configuration is generated from
 templates, and every artifact in this repo came from a live run you can
