@@ -63,6 +63,13 @@ listen to its advertisements (multicast 224.0.0.18, IP protocol 112).
   flushed), a still Backup router accepts and forwards virtual MAC frames.
   Hardware implementations typically program the virtual MAC only on the
   active router, which is where the textbook multi second blackout comes from.
+  Second measured consequence (WHAT-BROKE entry 10): with the VIP configured
+  on both macvlans, the Backup's kernel still answers ARP for the VIP with
+  its real MAC (default arp_ignore=0 answers for any local address), so hosts
+  intermittently learned the wrong gateway MAC. The lab sets arp_ignore=1 and
+  arp_announce=2 on the routers, the classic first hop redundancy hardening,
+  so only the oper-up macvlan holding the address answers, from the virtual
+  MAC.
 
 ## The three lessons this module actually measured
 

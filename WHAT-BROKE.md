@@ -214,20 +214,40 @@ helpfully answered with an ICMP redirect pointing at r1 (the better LAN next
 hop) while the role flip ate one packet. Every earlier local and CI run had
 simply won this race.
 
-**Fix, round 1:** gate on r1 reporting `Status (v4) Master` before validating.
-That was not enough: take two failed the same way with the gate green. The
-capture logic in the ping output told the story: seq 1 and 2 arrived with ttl
-61 (the r1 path), then seq 3 detoured to r2. During the handover tail, the
-conceding master can still source a frame from the virtual MAC, flipping the
-bridge's learned port back to r2 for up to an advertisement interval after r1
-already reports Master.
+**Round 1 (wrong theory):** blamed VRRP preemption timing and gated on r1
+reporting `Status (v4) Master`. Take two failed identically with the gate
+green.
 
-**Fix, round 2:** gate on both roles (r1 Master and r2 Backup) plus a 3s
-settle, in docs/demo.sh and the CI workflow. Once r2 is in Backup it sources
-nothing from the virtual MAC, and r1's 1s advertisements keep the bridge FDB
-pinned.
+**Round 2 (wrong theory, better gate):** blamed the handover tail and gated
+on both roles (r1 Master and r2 Backup) plus settle time. The gates are
+correct hygiene and stayed, but CI then failed with the same signature while
+both roles were verified settled: the theory was wrong twice.
 
-**Lesson:** "converged" is per protocol, not per box, and not even per one
-box's opinion: a handover has two ends, and the gate must observe both. Also,
-a demo recording is a test run: pointing a camera at the system found a flake
+**Round 3 (capture geometry finds the truth):** reproduced locally with
+tcpdump on the bridge side of each router's port. On r2's port: h1 broadcasts
+`Who has 10.10.0.1?` and the answer is `10.10.0.1 is at aa:c1:ab:a7:b7:3b`,
+which is r2's real eth1 MAC, not the virtual MAC. A unicast ARP reply from r1
+would never traverse r2's bridge port, so a reply seen there was sourced by
+r2: the Backup itself. Root cause: the FRR macvlan model requires the VIP
+configured on both routers' macvlans, protodown suppresses VRRP transmission
+on the Backup, but the kernel's ARP responder (default arp_ignore=0) still
+answers for any local address from any interface, with the real MAC. Every
+ARP refresh on h1 was a race between r1's correct answer (virtual MAC) and
+r2's poison (real MAC), which is why the failure was intermittent, struck a
+couple of seconds into a flow (neighbor entry refresh), and survived every
+role based gate.
+
+**Fix:** `net.ipv4.conf.all.arp_ignore=1` and `arp_announce=2` on both
+routers, applied in the topology alongside the macvlan setup. With answers
+restricted to the interface that holds the address, the Master's oper-up
+macvlan answers from the virtual MAC and the Backup's protodown macvlan stays
+silent. Verified: six forced re-resolutions all returned the virtual MAC, and
+the failing ping burst went 15 for 15 clean. One loose end not chased: which
+hop dropped the redirected packet in the failing case; the fix removes that
+entire path.
+
+**Lesson:** role state describes the control plane; ARP poisoning happens in
+the neighbor tables. When a failure survives two plausible theories, stop
+theorizing and put a capture where the geometry can only mean one thing. And
+a demo recording is a test run: pointing a camera at the system found a bug
 that a green CI history had been hiding.

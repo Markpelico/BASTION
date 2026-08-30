@@ -16,6 +16,13 @@ topology:
         - ip link add vrrp4-10 link eth1 addr 00:00:5e:00:01:0a type macvlan
         - ip addr add 10.10.0.1/32 dev vrrp4-10
         - ip link set dev vrrp4-10 up
+        # Without arp_ignore, the kernel answers ARP for the VIP from any
+        # interface with the real MAC, so the Backup intermittently hijacks
+        # the VIP (WHAT-BROKE entry 10). arp_ignore=1 restricts answers to
+        # the interface holding the address: the Master's oper-up macvlan
+        # answers from the virtual MAC, the Backup's protodown macvlan stays
+        # silent.
+        - sysctl -w net.ipv4.conf.all.arp_ignore=1 net.ipv4.conf.all.arp_announce=2
     r2:
       kind: linux
       image: quay.io/frrouting/frr:10.7.1
@@ -25,6 +32,7 @@ topology:
         - ip link add vrrp4-10 link eth1 addr 00:00:5e:00:01:0a type macvlan
         - ip addr add 10.10.0.1/32 dev vrrp4-10
         - ip link set dev vrrp4-10 up
+        - sysctl -w net.ipv4.conf.all.arp_ignore=1 net.ipv4.conf.all.arp_announce=2
     r3:
       kind: linux
       image: quay.io/frrouting/frr:10.7.1
