@@ -11,9 +11,11 @@ interface lo
 {% endif %}
 !
 {% endif %}
-{% for i in node.interfaces %}
+{% for i in node.interfaces | default([]) %}
 interface {{ i.name }}
+{% if i.ip is defined %}
  ip address {{ i.ip }}
+{% endif %}
 {% if i.ospf is defined %}
  ip ospf area {{ i.ospf.area }}
 {% if i.ospf.ptp | default(false) %}
@@ -47,22 +49,50 @@ router ospf
 {% if node.bgp is defined %}
 router bgp {{ node.bgp.asn }}
  bgp router-id {{ node.router_id }}
-{% for n in node.bgp.neighbors %}
+{% for n in node.bgp.neighbors | default([]) %}
  neighbor {{ n.ip }} remote-as {{ n.remote_as }}
 {% if n.description is defined %}
  neighbor {{ n.ip }} description {{ n.description }}
 {% endif %}
 {% endfor %}
+{% if node.bgp.peer_group is defined %}
+ neighbor {{ node.bgp.peer_group.name }} peer-group
+ neighbor {{ node.bgp.peer_group.name }} remote-as external
+{% if node.bgp.peer_group.timers is defined %}
+ neighbor {{ node.bgp.peer_group.name }} timers {{ node.bgp.peer_group.timers }}
+{% endif %}
+{% for ifn in node.bgp.peer_group.interfaces %}
+ neighbor {{ ifn }} interface peer-group {{ node.bgp.peer_group.name }}
+{% endfor %}
+{% endif %}
  !
  address-family ipv4 unicast
+{% if node.bgp.max_paths is defined %}
+  maximum-paths {{ node.bgp.max_paths }}
+{% endif %}
 {% for net in node.bgp.networks | default([]) %}
   network {{ net }}
 {% endfor %}
-{% for n in node.bgp.neighbors %}
+{% for n in node.bgp.neighbors | default([]) %}
   neighbor {{ n.ip }} route-map {{ n.rm_in | default('ALLOW-ALL') }} in
   neighbor {{ n.ip }} route-map {{ n.rm_out | default('ALLOW-ALL') }} out
 {% endfor %}
+{% if node.bgp.peer_group is defined %}
+  neighbor {{ node.bgp.peer_group.name }} route-map ALLOW-ALL in
+  neighbor {{ node.bgp.peer_group.name }} route-map ALLOW-ALL out
+{% endif %}
  exit-address-family
+{% if node.bgp.evpn is defined %}
+ !
+ address-family l2vpn evpn
+  neighbor {{ node.bgp.peer_group.name }} activate
+  neighbor {{ node.bgp.peer_group.name }} route-map ALLOW-ALL in
+  neighbor {{ node.bgp.peer_group.name }} route-map ALLOW-ALL out
+{% if node.bgp.evpn.advertise_all_vni | default(false) %}
+  advertise-all-vni
+{% endif %}
+ exit-address-family
+{% endif %}
 !
 {% for rm in node.route_maps | default([]) %}
 route-map {{ rm.name }} permit {{ rm.seq | default(10) }}

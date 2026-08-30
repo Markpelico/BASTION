@@ -33,8 +33,16 @@ jobs:
           containerlab version | head -3
       - name: deploy module 1 in the runner
         run: sudo make campus-deploy
-      - name: wait for OSPF and VRRP convergence
-        run: sleep 35
+      - name: wait for convergence (LAN DR election alone takes 40s of wait timer)
+        run: |
+          for i in $(seq 1 18); do
+            full=$(sudo docker exec clab-bastion-campus-r1 vtysh -c 'show ip ospf neighbor json' \
+              | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(1 for l in d.get('neighbors',{}).values() for e in l if (e.get('nbrState') or e.get('converged') or '').startswith('Full')))" \
+              2>/dev/null || echo 0)
+            if [ "$full" = "2" ]; then echo "converged after about $((i*10))s"; exit 0; fi
+            sleep 10
+          done
+          echo "did not converge within 180s"; exit 1
       - name: validation suite against the live lab
         run: sudo make campus-test
       - name: drift check golden vs running configs

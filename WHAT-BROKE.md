@@ -111,3 +111,26 @@ interviewer should hear you notice.
 **Lesson:** out of band management networks are real paths. Anything that
 races convergence at boot may use them, and only inspection of addresses and
 captures reveals it.
+
+## 6. CI failed on an adjacency that always worked locally
+
+**Symptom:** first CI run: 8 of 10 module 1 tests pass in the GitHub runner,
+but r1 and r2 each report one Full OSPF neighbor instead of two. The missing
+adjacency is exactly the r1 to r2 pairing across the LAN bridge. VRRP on the
+same segment had converged fine.
+
+**Diagnosis:** OSPF's broadcast network state machine. On a multi access
+segment, routers sit in Waiting state for a full dead interval (40s) before
+electing DR and BDR, and only then proceed to database exchange. The CI
+workflow slept 35 seconds: it tested inside the wait timer window. Locally the
+lab always had more than a minute between deploy and the first check, which
+hid the boundary. The point to point adjacencies formed in seconds because
+point to point networks skip the election entirely.
+
+**Fix:** replaced the blind sleep with a convergence poll that checks r1's
+Full neighbor count every 10s (and logs how long convergence actually took).
+
+**Lesson:** CI is a timing microscope: it runs the exact same commands at a
+phase of the lab's life a human never observes. Convergence gates should poll
+for the condition, not sleep for a guess, and the 40s broadcast wait timer is
+a real number worth knowing cold.
