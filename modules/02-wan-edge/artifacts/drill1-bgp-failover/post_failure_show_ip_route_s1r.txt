@@ -1,0 +1,7 @@
+Routing entry for 203.0.113.0/24
+  Known via "bgp", distance 20, metric 0, best
+  Last update 00:00:12 ago
+  Flags: Selected 
+  Status: Installed 
+  * 100.64.12.2, via eth2, weight 1
+

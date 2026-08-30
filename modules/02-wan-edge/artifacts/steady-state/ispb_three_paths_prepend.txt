@@ -1,0 +1,16 @@
+BGP routing table entry for 198.51.100.0/24, version 14
+Paths: (3 available, best #1, table default)
+  Advertised to peers:
+  100.64.0.1 100.64.12.1 100.64.22.1
+  64512 65001
+    100.64.0.1 from 100.64.0.1 (100.64.255.1)
+      Origin IGP, valid, external, best (AS Path)
+      Last update: Sun Aug 30 09:52:24 2026
+  65002 64512 65001
+    100.64.22.1 from 100.64.22.1 (192.0.2.2)
+      Origin IGP, valid, external
+      Last update: Sun Aug 30 09:52:24 2026
+  65001 65001 65001 65001
+    100.64.12.1 from 100.64.12.1 (192.0.2.1)
+      Origin IGP, metric 0, valid, external
+      Last update: Sun Aug 30 09:50:19 2026

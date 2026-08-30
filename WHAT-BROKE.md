@@ -66,3 +66,48 @@ own config store.
 
 **Lesson:** command output is a claim, not a fact. Verify state changes at the
 layer that owns them (kernel link state, LSDB, routing table).
+
+## 4. The satellite baseline measured 600ms RTT
+
+**Symptom:** drill 3's "no impairment" baseline reported 12 Mbps and the
+baseline ping showed 600ms RTT, on a veth path that should run at gigabits
+with microsecond latency.
+
+**Diagnosis:** the previous run of the drill had died halfway (a sysctl key
+that does not exist inside network namespaces, net.core.rmem_max, tripped
+set -e) and its cleanup never ran, leaving tc netem applied on the provider
+router. The next run inherited a poisoned network and measured the impairment
+as its baseline.
+
+**Fix:** two changes to the drill: it now deletes any leftover qdiscs and
+resets congestion control before measuring anything, and a trap removes the
+impairment on every exit path. Rerun produced a sane baseline (5486 Mbps,
+0.095ms).
+
+**Lesson:** experiments that mutate shared state must be self cleaning at
+start, not just at end: cleanup code after a failure never runs. And a
+baseline that looks remotely plausible is not the same as a correct baseline;
+the RTT line exposed this instantly.
+
+## 5. The first IKE SA came up over the management network
+
+**Symptom:** drill 2's teardown log showed the IKE SA between
+172.20.20.13[4500] and 172.20.20.9[4500], the containerlab management
+addresses, not the 192.0.2.x loopbacks the tunnel is designed around.
+
+**Diagnosis:** strongSwan's auto=start initiates at boot, before BGP has
+converged. At that moment the only route to the peer loopback is the
+container's default route, which points out the management interface, and the
+management bridge happily delivers it. The ESP protected GRE data always used
+the real provider path (the drill's provider side capture shows the ESP), but
+the IKE control channel had quietly taken an out of band shortcut.
+
+**Fix:** none required for correctness, and the renegotiation during drill 2
+established the SA between the loopbacks over the real path (visible in the
+steady state ipsec statusall). Documented instead of hidden, because "the
+control plane took a path you did not design" is exactly the kind of thing an
+interviewer should hear you notice.
+
+**Lesson:** out of band management networks are real paths. Anything that
+races convergence at boot may use them, and only inspection of addresses and
+captures reveals it.

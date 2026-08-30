@@ -1,0 +1,112 @@
+# Config generation variables for module 2: wan-edge.
+#
+# Addressing plan (documentation and CGN ranges on purpose):
+#   site1 public LAN    198.51.100.0/24 (TEST-NET-2)   s1r .1, s1h .100
+#   site2 public LAN    203.0.113.0/24  (TEST-NET-3)   s2r .1, s2h .100
+#   site1 private LAN   10.101.0.0/24                  overlay only, not in BGP
+#   site2 private LAN   10.102.0.0/24                  overlay only, not in BGP
+#   transit links       100.64.0.0/10   (CGN space)
+#   site loopbacks      192.0.2.1, 192.0.2.2 (TEST-NET-1): BGP announced,
+#                       GRE and IKE endpoints
+#   GRE tunnel          10.99.0.0/30
+#
+# Policy at site1: prefer ISP A outbound (local-preference 200 on routes
+# learned from A) and make the world prefer ISP A inbound (AS path prepend
+# toward B). FRR enforces RFC 8212, so every eBGP session carries an explicit
+# route map in both directions; ALLOW-ALL is the generated default.
+
+lab: wan
+ipsec_psk: bastion-lab-psk-do-not-reuse-outside-this-lab
+
+nodes:
+  s1r:
+    role: router
+    router_id: 192.0.2.1
+    loopback: 192.0.2.1/32
+    loopback_ospf: false
+    daemons: [bgpd, ospfd]
+    ospf: {}
+    bgp:
+      asn: 65001
+      networks: [198.51.100.0/24, 192.0.2.1/32]
+      neighbors:
+        - {ip: 100.64.11.2, remote_as: 64512, description: ispa, rm_in: FROM-ISPA}
+        - {ip: 100.64.12.2, remote_as: 64513, description: ispb, rm_out: TO-ISPB}
+    route_maps:
+      - {name: FROM-ISPA, set: ["local-preference 200"]}
+      - {name: TO-ISPB, set: ["as-path prepend 65001 65001 65001"]}
+    ipsec: {local: 192.0.2.1, peer: 192.0.2.2}
+    interfaces:
+      - {name: eth1, ip: 100.64.11.1/30}
+      - {name: eth2, ip: 100.64.12.1/30}
+      - {name: eth3, ip: 198.51.100.1/24}
+      - name: eth4
+        ip: 10.101.0.1/24
+        ospf: {area: 0.0.0.0, passive: true}
+      - name: gre1
+        ip: 10.99.0.1/30
+        ospf: {area: 0.0.0.0, ptp: true}
+
+  s2r:
+    role: router
+    router_id: 192.0.2.2
+    loopback: 192.0.2.2/32
+    loopback_ospf: false
+    daemons: [bgpd, ospfd]
+    ospf: {}
+    bgp:
+      asn: 65002
+      networks: [203.0.113.0/24, 192.0.2.2/32]
+      neighbors:
+        - {ip: 100.64.21.2, remote_as: 64512, description: ispa}
+        - {ip: 100.64.22.2, remote_as: 64513, description: ispb}
+    ipsec: {local: 192.0.2.2, peer: 192.0.2.1}
+    interfaces:
+      - {name: eth1, ip: 100.64.21.1/30}
+      - {name: eth2, ip: 100.64.22.1/30}
+      - {name: eth3, ip: 203.0.113.1/24}
+      - name: eth4
+        ip: 10.102.0.1/24
+        ospf: {area: 0.0.0.0, passive: true}
+      - name: gre1
+        ip: 10.99.0.2/30
+        ospf: {area: 0.0.0.0, ptp: true}
+
+  ispa:
+    role: router
+    router_id: 100.64.255.1
+    loopback: 100.64.255.1/32
+    daemons: [bgpd]
+    bgp:
+      asn: 64512
+      networks: [100.64.255.1/32]
+      neighbors:
+        - {ip: 100.64.11.1, remote_as: 65001, description: site1}
+        - {ip: 100.64.21.1, remote_as: 65002, description: site2}
+        - {ip: 100.64.0.2, remote_as: 64513, description: ispb}
+    interfaces:
+      - {name: eth1, ip: 100.64.11.2/30}
+      - {name: eth2, ip: 100.64.21.2/30}
+      - {name: eth3, ip: 100.64.0.1/30}
+
+  ispb:
+    role: router
+    router_id: 100.64.255.2
+    loopback: 100.64.255.2/32
+    daemons: [bgpd]
+    bgp:
+      asn: 64513
+      networks: [100.64.255.2/32]
+      neighbors:
+        - {ip: 100.64.12.1, remote_as: 65001, description: site1}
+        - {ip: 100.64.22.1, remote_as: 65002, description: site2}
+        - {ip: 100.64.0.1, remote_as: 64512, description: ispa}
+    interfaces:
+      - {name: eth1, ip: 100.64.12.2/30}
+      - {name: eth2, ip: 100.64.22.2/30}
+      - {name: eth3, ip: 100.64.0.2/30}
+
+  s1h:
+    role: host
+  s2h:
+    role: host

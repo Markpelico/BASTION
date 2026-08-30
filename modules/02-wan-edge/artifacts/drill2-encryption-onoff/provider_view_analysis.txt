@@ -1,0 +1,22 @@
+esp packets:
+22
+cleartext gre packets:
+42
+ikev2 packets:
+4
+
+what cleartext GRE exposes (inner protocol summary):
+    1   0.000000 10.101.0.100 → 10.102.0.100 ICMP 122 Echo (ping) request  id=0x000c, seq=1/256, ttl=63
+    2   0.000047 10.102.0.100 → 10.101.0.100 ICMP 122 Echo (ping) reply    id=0x000c, seq=1/256, ttl=63 (request in 1)
+    3   0.200370 10.101.0.100 → 10.102.0.100 ICMP 122 Echo (ping) request  id=0x000c, seq=2/512, ttl=63
+    4   0.200415 10.102.0.100 → 10.101.0.100 ICMP 122 Echo (ping) reply    id=0x000c, seq=2/512, ttl=63 (request in 3)
+    5   0.404859 10.101.0.100 → 10.102.0.100 ICMP 122 Echo (ping) request  id=0x000c, seq=3/768, ttl=63
+    6   0.404906 10.102.0.100 → 10.101.0.100 ICMP 122 Echo (ping) reply    id=0x000c, seq=3/768, ttl=63 (request in 5)
+    7   0.608381 10.101.0.100 → 10.102.0.100 ICMP 122 Echo (ping) request  id=0x000c, seq=4/1024, ttl=63
+    8   0.608427 10.102.0.100 → 10.101.0.100 ICMP 122 Echo (ping) reply    id=0x000c, seq=4/1024, ttl=63 (request in 7)
+
+IKEv2 exchanges:
+   43  10.299801    192.0.2.1 → 192.0.2.2    ISAKMP 506 IKE_SA_INIT MID=00 Initiator Request
+   44  10.300478    192.0.2.2 → 192.0.2.1    ISAKMP 514 IKE_SA_INIT MID=00 Responder Response
+   45  10.301272    192.0.2.1 → 192.0.2.2    ISAKMP 414 IKE_AUTH MID=01 Initiator Request
+   46  10.302054    192.0.2.2 → 192.0.2.1    ISAKMP 382 IKE_AUTH MID=01 Responder Response

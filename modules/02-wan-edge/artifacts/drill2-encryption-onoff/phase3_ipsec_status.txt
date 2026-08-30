@@ -1,0 +1,13 @@
+Shunted Connections:
+Bypass LAN 172.20.20.0/24:  172.20.20.0/24 === 172.20.20.0/24 PASS
+Bypass LAN 3fff:172:20:20::/64:  3fff:172:20:20::/64 === 3fff:172:20:20::/64 PASS
+Bypass LAN 100.64.12.0/30:  100.64.12.0/30 === 100.64.12.0/30 PASS
+Bypass LAN 10.101.0.0/24:  10.101.0.0/24 === 10.101.0.0/24 PASS
+Bypass LAN 198.51.100.0/24:  198.51.100.0/24 === 198.51.100.0/24 PASS
+Bypass LAN 10.99.0.0/30:  10.99.0.0/30 === 10.99.0.0/30 PASS
+Bypass LAN 100.64.11.0/30:  100.64.11.0/30 === 100.64.11.0/30 PASS
+Bypass LAN fe80::/64:  fe80::/64 === fe80::/64 PASS
+Security Associations (1 up, 0 connecting):
+         gre[3]: ESTABLISHED 4 seconds ago, 192.0.2.1[192.0.2.1]...192.0.2.2[192.0.2.2]
+         gre{3}:  INSTALLED, TRANSPORT, reqid 1, ESP SPIs: c1a8d785_i c9541d9a_o
+         gre{3}:   192.0.2.1/32[gre] === 192.0.2.2/32[gre]

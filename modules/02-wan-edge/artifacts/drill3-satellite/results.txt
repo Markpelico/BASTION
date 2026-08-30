@@ -1,0 +1,7 @@
+results (throughput in Mbps, from iperf3 JSON):
+  baseline, no impairment:        5486 Mbps, 0 retransmits
+  600ms RTT + 0.5% loss, cubic:   11 Mbps, 7 retransmits
+  600ms RTT + 0.5% loss, tuned:   115 Mbps, 5614 retransmits
+
+rtt baseline:  rtt min/avg/max/mdev = 0.075/0.095/0.163/0.033 ms
+rtt satellite: rtt min/avg/max/mdev = 600.548/600.744/600.951/0.166 ms

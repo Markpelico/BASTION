@@ -1,0 +1,33 @@
+Status of IKE charon daemon (strongSwan 5.9.14, Linux 6.6.87.2-microsoft-standard-WSL2, x86_64):
+  uptime: 8 minutes, since Aug 30 09:50:15 2026
+  worker threads: 11 of 16 idle, 5/0/0/0 working, job queue: 0/0/0/0, scheduled: 7
+  loaded plugins: charon aesni mgf1 random nonce x509 revocation constraints pubkey pkcs1 pkcs7 pkcs12 pgp dnskey sshkey pem openssl pkcs8 fips-prf gmp curve25519 xcbc cmac kdf gcm drbg curl sqlite attr kernel-netlink resolve socket-default bypass-lan farp stroke vici updown eap-identity eap-sim eap-aka eap-aka-3gpp2 eap-simaka-pseudonym eap-simaka-reauth eap-md5 eap-mschapv2 eap-radius eap-tls xauth-generic xauth-eap dhcp unity counters
+Listening IP addresses:
+  172.20.20.13
+  3fff:172:20:20::d
+  100.64.11.1
+  100.64.12.1
+  198.51.100.1
+  10.101.0.1
+  10.99.0.1
+Connections:
+         gre:  192.0.2.1...192.0.2.2  IKEv2, dpddelay=10s
+         gre:   local:  [192.0.2.1] uses pre-shared key authentication
+         gre:   remote: [192.0.2.2] uses pre-shared key authentication
+         gre:   child:  dynamic[gre] === dynamic[gre] TRANSPORT, dpdaction=start
+Shunted Connections:
+Bypass LAN 172.20.20.0/24:  172.20.20.0/24 === 172.20.20.0/24 PASS
+Bypass LAN 3fff:172:20:20::/64:  3fff:172:20:20::/64 === 3fff:172:20:20::/64 PASS
+Bypass LAN 100.64.12.0/30:  100.64.12.0/30 === 100.64.12.0/30 PASS
+Bypass LAN 10.101.0.0/24:  10.101.0.0/24 === 10.101.0.0/24 PASS
+Bypass LAN 198.51.100.0/24:  198.51.100.0/24 === 198.51.100.0/24 PASS
+Bypass LAN 10.99.0.0/30:  10.99.0.0/30 === 10.99.0.0/30 PASS
+Bypass LAN 100.64.11.0/30:  100.64.11.0/30 === 100.64.11.0/30 PASS
+Bypass LAN fe80::/64:  fe80::/64 === fe80::/64 PASS
+Security Associations (1 up, 0 connecting):
+         gre[3]: ESTABLISHED 5 minutes ago, 192.0.2.1[192.0.2.1]...192.0.2.2[192.0.2.2]
+         gre[3]: IKEv2 SPIs: 578dcdc44527476b_i* fb684f1da49d785e_r, pre-shared key reauthentication in 2 hours
+         gre[3]: IKE proposal: AES_CBC_256/HMAC_SHA2_256_128/PRF_HMAC_SHA2_256/MODP_2048
+         gre{3}:  INSTALLED, TRANSPORT, reqid 1, ESP SPIs: c1a8d785_i c9541d9a_o
+         gre{3}:  AES_CBC_256/HMAC_SHA2_256_128, 3184 bytes_i (42 pkts, 1s ago), 3184 bytes_o (42 pkts, 2s ago), rekeying in 39 minutes
+         gre{3}:   192.0.2.1/32[gre] === 192.0.2.2/32[gre]

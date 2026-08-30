@@ -1,0 +1,11 @@
+[04:51:57.995] pre state
+[04:51:58.527] starting captures on s1r uplinks (bgp and icmp)
+[04:52:00.533] starting 40s ping s1h to s2h (public path) at 5 packets per second
+[04:52:10.538] FAILURE: s1r eth1 down (link to preferred provider ispa)
+[04:52:22.693] post failure state
+[04:52:23.202] RECOVERY: s1r eth1 up
+[04:52:40.698] ping finished
+[04:52:49.078] done: artifacts in /mnt/c/Users/Admin/Desktop/BASTION/modules/02-wan-edge/artifacts/drill1-bgp-failover
+--- 203.0.113.100 ping statistics ---
+197 packets transmitted, 196 received, 0.507614% packet loss, time 39993ms
+rtt min/avg/max/mdev = 0.051/0.081/0.129/0.011 ms

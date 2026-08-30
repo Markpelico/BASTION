@@ -6,7 +6,7 @@ log stdout informational
 {% if node.loopback is defined %}
 interface lo
  ip address {{ node.loopback }}
-{% if node.ospf is defined %}
+{% if node.ospf is defined and node.loopback_ospf | default(true) %}
  ip ospf area {{ node.ospf.loopback_area | default('0.0.0.0') }}
 {% endif %}
 !
@@ -28,10 +28,13 @@ interface {{ i.name }}
 {% endif %}
 {% if i.vrrp is defined %}
  vrrp {{ i.vrrp.vrid }} version 3
+{% if i.vrrp.priority != 100 %}
  vrrp {{ i.vrrp.vrid }} priority {{ i.vrrp.priority }}
- vrrp {{ i.vrrp.vrid }} advertisement-interval {{ i.vrrp.adv_interval_ms | default(1000) }}
+{% endif %}
+{% if i.vrrp.adv_interval_ms is defined and i.vrrp.adv_interval_ms != 1000 %}
+ vrrp {{ i.vrrp.vrid }} advertisement-interval {{ i.vrrp.adv_interval_ms }}
+{% endif %}
  vrrp {{ i.vrrp.vrid }} ip {{ i.vrrp.vip }}
- no vrrp {{ i.vrrp.vrid }} shutdown
 {% endif %}
 !
 {% endfor %}
@@ -39,5 +42,35 @@ interface {{ i.name }}
 router ospf
  ospf router-id {{ node.router_id }}
  log-adjacency-changes detail
+!
+{% endif %}
+{% if node.bgp is defined %}
+router bgp {{ node.bgp.asn }}
+ bgp router-id {{ node.router_id }}
+{% for n in node.bgp.neighbors %}
+ neighbor {{ n.ip }} remote-as {{ n.remote_as }}
+{% if n.description is defined %}
+ neighbor {{ n.ip }} description {{ n.description }}
+{% endif %}
+{% endfor %}
+ !
+ address-family ipv4 unicast
+{% for net in node.bgp.networks | default([]) %}
+  network {{ net }}
+{% endfor %}
+{% for n in node.bgp.neighbors %}
+  neighbor {{ n.ip }} route-map {{ n.rm_in | default('ALLOW-ALL') }} in
+  neighbor {{ n.ip }} route-map {{ n.rm_out | default('ALLOW-ALL') }} out
+{% endfor %}
+ exit-address-family
+!
+{% for rm in node.route_maps | default([]) %}
+route-map {{ rm.name }} permit {{ rm.seq | default(10) }}
+{% for s in rm.set | default([]) %}
+ set {{ s }}
+{% endfor %}
+!
+{% endfor %}
+route-map ALLOW-ALL permit 10
 !
 {% endif %}

@@ -1,0 +1,16 @@
+[04:56:48.940] pre clean: removing any leftover impairment and resetting congestion control
+[04:56:49.611] starting iperf3 server on s2h
+[04:56:50.931] baseline RTT and throughput (no impairment)
+[04:57:03.353] applying netem: 300ms delay and 0.5% loss on ispa eth1 and eth2
+[04:57:05.010] satellite RTT proof and throughput with default TCP (cubic)
+[04:57:29.791] tuning TCP on both hosts: BBR plus 64MB TCP buffer ceilings
+[04:57:31.817] satellite throughput with tuned TCP (bbr, big windows)
+[04:57:51.788] cleanup: removing netem, restoring cubic
+results (throughput in Mbps, from iperf3 JSON):
+  baseline, no impairment:        5486 Mbps, 0 retransmits
+  600ms RTT + 0.5% loss, cubic:   11 Mbps, 7 retransmits
+  600ms RTT + 0.5% loss, tuned:   115 Mbps, 5614 retransmits
+
+rtt baseline:  rtt min/avg/max/mdev = 0.075/0.095/0.163/0.033 ms
+rtt satellite: rtt min/avg/max/mdev = 600.548/600.744/600.951/0.166 ms
+[04:57:52.609] done: artifacts in /mnt/c/Users/Admin/Desktop/BASTION/modules/02-wan-edge/artifacts/drill3-satellite

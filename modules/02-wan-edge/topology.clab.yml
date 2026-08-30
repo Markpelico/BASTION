@@ -1,0 +1,72 @@
+# Module 2: wan-edge
+# Two sites (AS 65001, 65002) dual homed to two ISP ASes (64512, 64513) with
+# real eBGP policy, plus GRE over IPsec between the sites carrying OSPF for
+# the private overlay. Site routers run the local bastion/frr-vpn:lab image
+# (FRR plus strongSwan), built by "make wan-image".
+name: bastion-wan
+
+topology:
+  nodes:
+    s1r:
+      kind: linux
+      image: bastion/frr-vpn:lab
+      binds:
+        - configs/s1r:/etc/frr
+        - configs/s1r/ipsec.conf:/etc/ipsec.conf
+        - configs/s1r/ipsec.secrets:/etc/ipsec.secrets
+      exec:
+        - ip tunnel add gre1 mode gre local 192.0.2.1 remote 192.0.2.2 ttl 64
+        - ip link set gre1 mtu 1360
+        - ip link set gre1 up
+    s2r:
+      kind: linux
+      image: bastion/frr-vpn:lab
+      binds:
+        - configs/s2r:/etc/frr
+        - configs/s2r/ipsec.conf:/etc/ipsec.conf
+        - configs/s2r/ipsec.secrets:/etc/ipsec.secrets
+      exec:
+        - ip tunnel add gre1 mode gre local 192.0.2.2 remote 192.0.2.1 ttl 64
+        - ip link set gre1 mtu 1360
+        - ip link set gre1 up
+    ispa:
+      kind: linux
+      image: quay.io/frrouting/frr:10.7.1
+      binds:
+        - configs/ispa:/etc/frr
+    ispb:
+      kind: linux
+      image: quay.io/frrouting/frr:10.7.1
+      binds:
+        - configs/ispb:/etc/frr
+    s1h:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 198.51.100.100/24 dev eth1
+        - ip addr add 10.101.0.100/24 dev eth2
+        - ip route replace default via 198.51.100.1
+        - ip route add 10.102.0.0/24 via 10.101.0.1
+    s2h:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 203.0.113.100/24 dev eth1
+        - ip addr add 10.102.0.100/24 dev eth2
+        - ip route replace default via 203.0.113.1
+        - ip route add 10.101.0.0/24 via 10.102.0.1
+
+  links:
+    # site1 uplinks
+    - endpoints: ["s1r:eth1", "ispa:eth1"]     # 100.64.11.0/30
+    - endpoints: ["s1r:eth2", "ispb:eth1"]     # 100.64.12.0/30
+    # site2 uplinks
+    - endpoints: ["s2r:eth1", "ispa:eth2"]     # 100.64.21.0/30
+    - endpoints: ["s2r:eth2", "ispb:eth2"]     # 100.64.22.0/30
+    # inter provider transit
+    - endpoints: ["ispa:eth3", "ispb:eth3"]    # 100.64.0.0/30
+    # site LANs: public segment and private segment per site
+    - endpoints: ["s1r:eth3", "s1h:eth1"]      # 198.51.100.0/24
+    - endpoints: ["s1r:eth4", "s1h:eth2"]      # 10.101.0.0/24 (private)
+    - endpoints: ["s2r:eth3", "s2h:eth1"]      # 203.0.113.0/24
+    - endpoints: ["s2r:eth4", "s2h:eth2"]      # 10.102.0.0/24 (private)

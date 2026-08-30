@@ -1,0 +1,1 @@
+gre1: gre/ip remote 192.0.2.2 local 192.0.2.1 ttl 64

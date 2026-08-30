@@ -1,0 +1,13 @@
+
+IPv4 Unicast Summary:
+BGP router identifier 100.64.255.1, local AS number 64512 VRF default vrf-id 0
+BGP table version 12
+RIB entries 6, using 960 bytes of memory
+Peers 3, using 69 KiB of memory
+
+Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
+100.64.0.2      4      64513        29        26       12    0    0 00:07:58            3        6 ispb
+100.64.11.1     4      65001        37        31       12    0    0 00:05:53            2        6 site1
+100.64.21.1     4      65002        30        25       12    0    0 00:07:58            3        6 site2
+
+Total number of neighbors 3

@@ -1,0 +1,12 @@
+BGP routing table entry for 203.0.113.0/24, version 5
+Paths: (2 available, best #1, table default)
+  Advertised to peers:
+  100.64.11.2 100.64.12.2
+  64512 65002
+    100.64.11.2 from 100.64.11.2 (100.64.255.1)
+      Origin IGP, localpref 200, valid, external, best (Local Pref)
+      Last update: Sun Aug 30 09:50:19 2026
+  64513 65002
+    100.64.12.2 from 100.64.12.2 (100.64.255.2)
+      Origin IGP, valid, external
+      Last update: Sun Aug 30 09:50:19 2026

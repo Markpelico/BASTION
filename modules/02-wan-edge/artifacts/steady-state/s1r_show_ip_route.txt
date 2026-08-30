@@ -1,0 +1,28 @@
+Codes: K - kernel route, C - connected, L - local, S - static,
+       R - RIP, O - OSPF, I - IS-IS, B - BGP, E - EIGRP, N - NHRP,
+       T - Table, v - VNC, V - VNC-Direct, A - Babel, F - PBR,
+       f - OpenFabric, t - Table-Direct,
+       > - selected route, * - FIB route, q - queued, r - rejected, b - backup
+       t - trapped, o - offload failure
+
+IPv4 unicast VRF default:
+K>* 0.0.0.0/0 [0/0] via 172.20.20.1, eth0, weight 1, 00:08:03
+C>* 10.99.0.0/30 is directly connected, gre1, weight 1, 00:08:02
+L>* 10.99.0.1/32 is directly connected, gre1, weight 1, 00:08:02
+C>* 10.101.0.0/24 is directly connected, eth4, weight 1, 00:08:02
+L>* 10.101.0.1/32 is directly connected, eth4, weight 1, 00:08:02
+O>* 10.102.0.0/24 [110/20] via 10.99.0.2, gre1, weight 1, 00:07:47
+C>* 100.64.11.0/30 is directly connected, eth1, weight 1, 00:05:54
+L>* 100.64.11.1/32 is directly connected, eth1, weight 1, 00:05:54
+C>* 100.64.12.0/30 is directly connected, eth2, weight 1, 00:08:02
+L>* 100.64.12.1/32 is directly connected, eth2, weight 1, 00:08:02
+B>* 100.64.255.1/32 [20/0] via 100.64.11.2, eth1, weight 1, 00:05:52
+B>* 100.64.255.2/32 [20/0] via 100.64.11.2, eth1, weight 1, 00:05:52
+C>* 172.20.20.0/24 is directly connected, eth0, weight 1, 00:08:03
+L>* 172.20.20.13/32 is directly connected, eth0, weight 1, 00:08:03
+L * 192.0.2.1/32 is directly connected, lo, weight 1, 00:08:02
+C>* 192.0.2.1/32 is directly connected, lo, weight 1, 00:08:02
+B>* 192.0.2.2/32 [20/0] via 100.64.11.2, eth1, weight 1, 00:05:52
+C>* 198.51.100.0/24 is directly connected, eth3, weight 1, 00:08:02
+L>* 198.51.100.1/32 is directly connected, eth3, weight 1, 00:08:02
+B>* 203.0.113.0/24 [20/0] via 100.64.11.2, eth1, weight 1, 00:05:52

@@ -28,5 +28,38 @@ campus-drill-ospf:
 
 campus-drills: campus-drill-vrrp campus-drill-ospf
 
+campus-drift:
+	python3 tools/driftcheck.py --module 01-campus-core --lab clab-bastion-campus
+
 campus-destroy:
 	containerlab destroy -t $(CAMPUS)/topology.clab.yml --cleanup
+
+# ---------------- module 2: wan-edge ----------------
+WAN := $(MODULES)/02-wan-edge
+
+wan-image:
+	docker build -t bastion/frr-vpn:lab images/frr-vpn
+
+wan-deploy: wan-image
+	python3 tools/generate.py --module 02-wan-edge
+	containerlab deploy -t $(WAN)/topology.clab.yml --reconfigure
+
+wan-test:
+	cd $(WAN) && python3 -m pytest tests/ -v
+
+wan-drill-bgp:
+	bash $(WAN)/drills/drill1_bgp_failover.sh
+
+wan-drill-ipsec:
+	bash $(WAN)/drills/drill2_encryption_onoff.sh
+
+wan-drill-satellite:
+	bash $(WAN)/drills/drill3_satellite.sh
+
+wan-drills: wan-drill-bgp wan-drill-ipsec wan-drill-satellite
+
+wan-drift:
+	python3 tools/driftcheck.py --module 02-wan-edge --lab clab-bastion-wan
+
+wan-destroy:
+	containerlab destroy -t $(WAN)/topology.clab.yml --cleanup
