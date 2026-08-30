@@ -1,0 +1,10 @@
+== response distribution across the whole run:
+      1 FAILED
+     17 web1
+     42 web2
+
+== during outage (requests 18 to 38, after health checks react):
+     21 web2
+
+== any failed requests (client saw an error):
+1

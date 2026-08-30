@@ -108,3 +108,19 @@ bw-captures:
 
 bw-destroy:
 	containerlab destroy -t $(BW)/topology.clab.yml --cleanup
+
+# ---------------- stretch module: load-balancer ----------------
+LB := $(MODULES)/05-load-balancer
+
+lb-deploy: bw-image
+	ip link show br-lb >/dev/null 2>&1 || { ip link add br-lb type bridge && ip link set br-lb up; }
+	containerlab deploy -t $(LB)/topology.clab.yml --reconfigure
+
+lb-test:
+	cd $(LB) && python3 -m pytest tests/ -v
+
+lb-drill:
+	bash $(LB)/drills/drill1_backend_failure.sh
+
+lb-destroy:
+	containerlab destroy -t $(LB)/topology.clab.yml --cleanup

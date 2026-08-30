@@ -1,0 +1,49 @@
+# Stretch module: load-balancer
+# HAProxy fronting two web backends with a virtual IP, health checks, and both
+# L4 and L7 front ends. A client drives traffic; a drill kills a backend mid
+# stream to show health check driven failover. Covers the posting's load
+# balancing / Application Delivery Controller bullet with a real artifact.
+name: bastion-lb
+
+topology:
+  nodes:
+    lb:
+      kind: linux
+      image: bastion/monitor:lab
+      binds:
+        - config/haproxy.cfg:/etc/haproxy/haproxy.cfg:ro
+        - config/lb-start.sh:/lb-start.sh:ro
+      exec:
+        - ip addr add 10.20.0.10/24 dev eth1
+        - bash /lb-start.sh
+
+    web1:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 10.20.0.101/24 dev eth1
+        - bash -c "echo 'server web1' > /tmp/id"
+        - bash -c "setsid python3 -m http.server 8080 --directory /tmp >/tmp/http.log 2>&1 < /dev/null &"
+
+    web2:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 10.20.0.102/24 dev eth1
+        - bash -c "echo 'server web2' > /tmp/id"
+        - bash -c "setsid python3 -m http.server 8080 --directory /tmp >/tmp/http.log 2>&1 < /dev/null &"
+
+    client:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 10.20.0.200/24 dev eth1
+
+    br-lb:
+      kind: bridge
+
+  links:
+    - endpoints: ["lb:eth1", "br-lb:port1"]
+    - endpoints: ["web1:eth1", "br-lb:port2"]
+    - endpoints: ["web2:eth1", "br-lb:port3"]
+    - endpoints: ["client:eth1", "br-lb:port4"]

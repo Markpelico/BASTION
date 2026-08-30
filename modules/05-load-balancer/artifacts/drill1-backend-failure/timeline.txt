@@ -1,0 +1,16 @@
+[05:48:36.492] pre state: which backends are up
+[05:48:36.657] polling the VIP 60 times at 0.25s; killing web1 partway
+[05:48:42.722] FAILURE: stopping web1 http server
+[05:48:55.545] RECOVERY: restarting web1 http server
+[05:49:04.549] analysis
+== response distribution across the whole run:
+      1 FAILED
+     17 web1
+     42 web2
+
+== during outage (requests 18 to 38, after health checks react):
+     21 web2
+
+== any failed requests (client saw an error):
+1
+[05:49:04.569] done: artifacts in /mnt/c/Users/Admin/Desktop/BASTION/modules/05-load-balancer/artifacts/drill1-backend-failure
