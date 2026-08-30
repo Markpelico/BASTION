@@ -1,5 +1,7 @@
 # BASTION
 
+[![ci](https://github.com/Markpelico/BASTION/actions/workflows/ci.yml/badge.svg)](https://github.com/Markpelico/BASTION/actions/workflows/ci.yml)
+
 A hands-on network engineering lab, built the way a software engineer builds things:
 every topology is code, every router configuration is generated from templates, and
 every artifact in this repo came from a live run that you can reproduce with the
