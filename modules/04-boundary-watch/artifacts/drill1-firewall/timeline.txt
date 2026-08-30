@@ -1,0 +1,42 @@
+[05:26:58.877] capturing on the collector mgmt interface (syslog + netflow)
+[05:26:59.882] legitimate: outside fetches the published web service 5 times
+[05:27:00.766] legitimate: inside browses out (NAT), and pings out
+[05:27:03.152] hostile: outside port scans the inside host (should be dropped + logged)
+[05:27:08.832] hostile: outside floods SYNs at a closed port with hping3
+[05:27:12.496] waiting for NetFlow expiry and nfcapd rotation
+[05:27:30.500] collecting firewall counters and logs
+[05:27:30.848] collecting syslog on the collector (denies shipped from the firewall)
+[05:27:31.031] NetFlow analysis from nfdump (top talkers and top destination ports)
+== web fetches from outside (expect 200 x5):
+200
+200
+200
+200
+200
+
+== denied events captured by the collector (count):
+149
+sample:
+2026-08-30 10:27:04 local0.notice ulogd[98]: FW-DENY-OUTSIDE:  IN=eth2 OUT=eth0 MAC=aa:c1:ab:85:ce:86:aa:c1:ab:7f:88:35:08:00 SRC=203.0.113.100 DST=10.255.255.254 LEN=71 TOS=00 PREC=0x00 TTL=63 ID=49590 DF PROTO=UDP SPT=57646 DPT=53 LEN=51 MARK=0x0 
+2026-08-30 10:27:04 local0.notice ulogd[98]: FW-DENY-OUTSIDE:  IN=eth2 OUT=eth0 MAC=aa:c1:ab:85:ce:86:aa:c1:ab:7f:88:35:08:00 SRC=203.0.113.100 DST=10.255.255.254 LEN=71 TOS=00 PREC=0x00 TTL=63 ID=5048 DF PROTO=UDP SPT=45167 DPT=53 LEN=51 MARK=0x0 
+2026-08-30 10:27:06 local0.notice ulogd[98]: FW-DENY-OUTSIDE:  IN=eth2 OUT=eth0 MAC=aa:c1:ab:85:ce:86:aa:c1:ab:7f:88:35:08:00 SRC=203.0.113.100 DST=10.255.255.254 LEN=71 TOS=00 PREC=0x00 TTL=63 ID=18109 DF PROTO=UDP SPT=49761 DPT=53 LEN=51 MARK=0x0 
+2026-08-30 10:27:08 local0.notice ulogd[98]: FW-DENY-OUTSIDE:  IN=eth2 OUT=eth1 MAC=aa:c1:ab:85:ce:86:aa:c1:ab:7f:88:35:08:00 SRC=203.0.113.100 DST=10.10.10.100 LEN=44 TOS=00 PREC=0x00 TTL=37 ID=3300 PROTO=TCP SPT=52282 DPT=25 SEQ=2510267017 ACK=0 WINDOW=1024 SYN URGP=0 MARK=0x0 
+2026-08-30 10:27:08 local0.notice ulogd[98]: FW-DENY-OUTSIDE:  IN=eth2 OUT=eth1 MAC=aa:c1:ab:85:ce:86:aa:c1:ab:7f:88:35:08:00 SRC=203.0.113.100 DST=10.10.10.100 LEN=44 TOS=00 PREC=0x00 TTL=50 ID=20524 PROTO=TCP SPT=52282 DPT=443 SEQ=2510267017 ACK=0 WINDOW=1024 SYN URGP=0 MARK=0x0 
+
+== nft deny counters:
+		counter packets 8 bytes 576 comment "dropped input"
+		ct state invalid log prefix "FW-INVALID: " group 1 drop
+		iifname "eth2" log prefix "FW-DENY-OUTSIDE: " group 1 counter packets 149 bytes 6157 drop
+		log prefix "FW-DENY-DEFAULT: " group 1 counter packets 0 bytes 0 drop
+
+== NetFlow top talkers:
+Top 10 Src IP Addr ordered by bytes:
+Date first seen             Duration     Proto       Src IP Addr    Flows(%)     Packets(%)       Bytes(%)         pps      bps   bpp
+2026-08-30 10:25:10.130     00:00:00.113 any       203.0.113.100      321(50.0)      670(65.4)    28212(58.5)        5     1997    42
+2026-08-30 10:25:10.130     00:00:00.110 any        10.10.10.100      313(48.8)      335(32.7)    18541(38.5)        3     1340    55
+2026-08-30 10:25:16.308     00:00:00.106 any         203.0.113.1        8( 1.2)       19( 1.9)     1452( 3.0)        0      108    76
+Summary: total flows: 642, total bytes: 48205, total packets: 1024, avg bps: 3412, avg pps: 9, avg bpp: 47
+Time window: 2026-08-30 10:24:50.  0 - 2026-08-30 10:27:20.  0, Duration:    00:02:30.000
+Total records processed: 642, passed: 642, Blocks skipped: 0, Bytes read: 54504
+Sys: 0.0000s User: 0.0100s Wall: 0.0029s flows/second: 224395.3 Runtime: 0.0029s
+[05:27:33.446] done: artifacts in /mnt/c/Users/Admin/Desktop/BASTION/modules/04-boundary-watch/artifacts/drill1-firewall

@@ -1,0 +1,5 @@
+HPING 10.10.10.100 (eth1 10.10.10.100): S set, 40 headers + 0 data bytes
+
+--- 10.10.10.100 hping statistic ---
+120 packets tramitted, 0 packets received, 100% packet loss
+round-trip min/avg/max = 0.0/0.0/0.0 ms

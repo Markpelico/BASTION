@@ -1,0 +1,21 @@
+Starting Nmap 7.99 ( https://nmap.org ) at 2026-08-30 10:27 +0000
+Nmap scan report for 10.10.10.100
+Host is up (0.000036s latency).
+
+PORT     STATE    SERVICE
+20/tcp   filtered ftp-data
+21/tcp   filtered ftp
+22/tcp   filtered ssh
+23/tcp   filtered telnet
+24/tcp   filtered priv-mail
+25/tcp   filtered smtp
+26/tcp   filtered rsftp
+27/tcp   filtered nsw-fe
+28/tcp   filtered unknown
+29/tcp   filtered msg-icp
+30/tcp   filtered unknown
+80/tcp   open     http
+443/tcp  filtered https
+3389/tcp filtered ms-wbt-server
+
+Nmap done: 1 IP address (1 host up) scanned in 5.48 seconds

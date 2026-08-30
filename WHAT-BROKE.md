@@ -134,3 +134,69 @@ Full neighbor count every 10s (and logs how long convergence actually took).
 phase of the lab's life a human never observes. Convergence gates should poll
 for the condition, not sleep for a guess, and the 40s broadcast wait timer is
 a real number worth knowing cold.
+
+## 7. Firewall denies never reached syslog (kernel log in a container)
+
+**Symptom:** module 4's firewall dropped hostile traffic correctly (nft
+counters climbed to 79, then 149) but zero denied events reached the syslog
+collector. The collector received test messages fine, so the syslog transport
+worked; the nft logs simply were not entering it.
+
+**Diagnosis:** nftables `log` writes to the kernel ring buffer, read by
+rsyslog's imklog. Inside a container network namespace, the netfilter log does
+not surface through the shared host ring buffer, and `dmesg` in the container
+showed zero FW-DENY lines even as the counters climbed. The kernel log path is
+simply not available to a containerized firewall.
+
+**Fix:** switch nft to NFLOG (`log group 1`), which delivers matched packets
+over a netlink socket rather than the kernel ring buffer, and run ulogd to
+read the netlink group and emit each packet to syslog. After the switch, 149
+denied events arrived at the collector with full per packet detail (the entire
+nmap scan legible port by port). This is also the more production realistic
+path: ulogd can emit structured JSON for a SIEM.
+
+**Lesson:** logging that assumes host kernel access breaks in containers.
+NFLOG plus a userspace reader is the portable path, and the layered diagnosis
+(counter increments, then log mechanism, then transport, then collector) is
+the reusable method.
+
+## 8. NetFlow collector recorded zero flows (v9 template timing)
+
+**Symptom:** softflowd reported flows exported with zero failures, packets
+reached the collector's port 9995, but nfdump reported "Total records
+processed: 0" and every nfcapd file was an empty 209 byte header.
+
+**Diagnosis:** NetFlow v9 is template driven. The collector cannot decode data
+FlowSets until it has received the template FlowSet, which softflowd sends only
+periodically. In a short drill the first data records arrive before any
+template and are dropped as unknown.
+
+**Fix:** switch softflowd to NetFlow v5, a fixed record format with no
+templates, so nfcapd decodes every record immediately. nfdump then produced a
+real top talkers table (642 flows). v5 is a deliberate, common choice for
+bounded labs; v9 or IPFIX would be the production choice with attention to
+template refresh intervals.
+
+**Lesson:** template based telemetry has a warm up period; a short measurement
+window can miss it entirely. Know whether your format is self describing (v5)
+or template driven (v9, IPFIX) before trusting an empty result.
+
+## 9. Also, a self inflicted one: SIGHUP killed the collector
+
+**Symptom:** the first drill sent `pkill -HUP nfcapd` intending to force a file
+rotation before reading; afterward nfcapd stopped writing files entirely.
+
+**Diagnosis:** SIGHUP terminates nfcapd rather than rotating it (rotation is
+driven by its own `-t` interval timer). The "force rotate" step was killing the
+collector, so every read after it saw a dead process.
+
+**Fix:** removed the signal; nfcapd rotates on its `-t 10` timer, and the drill
+simply waits past one rotation before reading. Separately, catching the bursty
+NetFlow export live for the capture library needed a controlled traffic burst:
+too little traffic and the export window is missed (empty pcap), a `--flood`
+and it is 37000 packets. A bounded 400 SYN burst produced a clean 547 packet
+export capture.
+
+**Lesson:** do not assume a signal means what you want; check what the daemon
+actually does with it. And bursty exporters need the measurement window shaped
+to the burst, from both directions.

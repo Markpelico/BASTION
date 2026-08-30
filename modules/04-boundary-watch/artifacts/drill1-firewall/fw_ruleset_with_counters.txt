@@ -1,0 +1,26 @@
+table inet boundary {
+	chain inbound {
+		type filter hook input priority filter; policy drop;
+		ct state established,related accept
+		iif "lo" accept
+		icmp type echo-request accept
+		ip saddr 172.31.0.0/24 tcp dport 22 accept
+		counter packets 8 bytes 576 comment "dropped input"
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy drop;
+		ct state established,related accept
+		ct state invalid log prefix "FW-INVALID: " group 1 drop
+		iifname "eth1" oifname { "eth2", "eth3" } accept
+		iifname "eth2" oifname "eth1" ip daddr 10.10.10.100 tcp dport 80 accept
+		iifname "eth3" oifname "eth1" accept
+		iifname "eth2" log prefix "FW-DENY-OUTSIDE: " group 1 counter packets 149 bytes 6157 drop
+		log prefix "FW-DENY-DEFAULT: " group 1 counter packets 0 bytes 0 drop
+	}
+
+	chain postrouting {
+		type nat hook postrouting priority srcnat; policy accept;
+		oifname "eth2" ip saddr 10.10.10.0/24 snat ip to 203.0.113.1
+	}
+}

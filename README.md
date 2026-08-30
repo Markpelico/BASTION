@@ -18,7 +18,7 @@ fabrics, boundary security, and network monitoring.
 | [01 campus-core](modules/01-campus-core/) | Multi-area OSPF, VRRP gateway redundancy, failure drills | complete, 10 tests passing |
 | [02 wan-edge](modules/02-wan-edge/) | eBGP policy (local-preference, prepend), GRE over IPsec, satellite link emulation | complete, 13 tests passing |
 | [03 dc-fabric](modules/03-dc-fabric/) | EVPN-VXLAN spine-leaf, two tenants, anycast gateways | complete, 18 tests passing |
-| [04 boundary-watch](modules/04-boundary-watch/) | nftables zones and NAT, syslog, NetFlow, annotated packet captures | planned |
+| [04 boundary-watch](modules/04-boundary-watch/) | nftables zones and NAT, syslog, NetFlow, annotated packet captures | complete, 7 tests passing |
 
 ## How it is built
 

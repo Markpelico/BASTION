@@ -87,3 +87,24 @@ dc-drift:
 
 dc-destroy:
 	containerlab destroy -t $(DC)/topology.clab.yml --cleanup
+
+# ---------------- module 4: boundary-watch ----------------
+BW := $(MODULES)/04-boundary-watch
+
+bw-image:
+	docker build -t bastion/monitor:lab images/monitor
+
+bw-deploy: bw-image
+	containerlab deploy -t $(BW)/topology.clab.yml --reconfigure
+
+bw-test:
+	cd $(BW) && python3 -m pytest tests/ -v
+
+bw-drill:
+	bash $(BW)/drills/drill1_firewall_traffic.sh
+
+bw-captures:
+	bash $(BW)/drills/capture_library.sh
+
+bw-destroy:
+	containerlab destroy -t $(BW)/topology.clab.yml --cleanup
