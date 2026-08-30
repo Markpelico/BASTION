@@ -2,13 +2,14 @@
 """Style gate: no em dashes or en dashes anywhere in tracked text files.
 
 Repo style rule: use commas, colons, or parentheses instead. Runs in CI.
+The banned characters are built with chr() so this file passes its own check.
 """
 import pathlib
 import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-BANNED = {"—": "em dash", "–": "en dash"}
+BANNED = {chr(0x2014): "em dash", chr(0x2013): "en dash"}
 BINARY_SUFFIXES = {".pcap", ".pcapng", ".png", ".jpg", ".gif"}
 
 
