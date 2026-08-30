@@ -1,0 +1,43 @@
+frr defaults traditional
+hostname {{ hostname }}
+service integrated-vtysh-config
+log stdout informational
+!
+{% if node.loopback is defined %}
+interface lo
+ ip address {{ node.loopback }}
+{% if node.ospf is defined %}
+ ip ospf area {{ node.ospf.loopback_area | default('0.0.0.0') }}
+{% endif %}
+!
+{% endif %}
+{% for i in node.interfaces %}
+interface {{ i.name }}
+ ip address {{ i.ip }}
+{% if i.ospf is defined %}
+ ip ospf area {{ i.ospf.area }}
+{% if i.ospf.ptp | default(false) %}
+ ip ospf network point-to-point
+{% endif %}
+{% if i.ospf.cost is defined %}
+ ip ospf cost {{ i.ospf.cost }}
+{% endif %}
+{% if i.ospf.passive | default(false) %}
+ ip ospf passive
+{% endif %}
+{% endif %}
+{% if i.vrrp is defined %}
+ vrrp {{ i.vrrp.vrid }} version 3
+ vrrp {{ i.vrrp.vrid }} priority {{ i.vrrp.priority }}
+ vrrp {{ i.vrrp.vrid }} advertisement-interval {{ i.vrrp.adv_interval_ms | default(1000) }}
+ vrrp {{ i.vrrp.vrid }} ip {{ i.vrrp.vip }}
+ no vrrp {{ i.vrrp.vrid }} shutdown
+{% endif %}
+!
+{% endfor %}
+{% if node.ospf is defined %}
+router ospf
+ ospf router-id {{ node.router_id }}
+ log-adjacency-changes detail
+!
+{% endif %}

@@ -1,0 +1,9 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+*.j2 text eol=lf
+Makefile text eol=lf
+*.pcap binary
+*.pcapng binary
+*.png binary

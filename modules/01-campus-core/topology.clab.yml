@@ -1,0 +1,63 @@
+# Module 1: campus-core
+# Multi-area OSPF (4 routers, 2 areas) with a VRRP gateway pair fronting a host LAN.
+# The br-campus Linux bridge is created by "make campus-deploy" before this file deploys.
+name: bastion-campus
+
+topology:
+  nodes:
+    r1:
+      kind: linux
+      image: quay.io/frrouting/frr:10.7.1
+      binds:
+        - configs/r1:/etc/frr
+      exec:
+        # FRR vrrpd expects a macvlan subinterface carrying the VRRP virtual MAC
+        # (00:00:5e:00:01:<vrid>) and the virtual IP. FRR then owns its state.
+        - ip link add vrrp4-10 link eth1 addr 00:00:5e:00:01:0a type macvlan
+        - ip addr add 10.10.0.1/32 dev vrrp4-10
+        - ip link set dev vrrp4-10 up
+    r2:
+      kind: linux
+      image: quay.io/frrouting/frr:10.7.1
+      binds:
+        - configs/r2:/etc/frr
+      exec:
+        - ip link add vrrp4-10 link eth1 addr 00:00:5e:00:01:0a type macvlan
+        - ip addr add 10.10.0.1/32 dev vrrp4-10
+        - ip link set dev vrrp4-10 up
+    r3:
+      kind: linux
+      image: quay.io/frrouting/frr:10.7.1
+      binds:
+        - configs/r3:/etc/frr
+    r4:
+      kind: linux
+      image: quay.io/frrouting/frr:10.7.1
+      binds:
+        - configs/r4:/etc/frr
+    h1:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 10.10.0.100/24 dev eth1
+        - ip route replace default via 10.10.0.1
+    h2:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 10.40.0.100/24 dev eth1
+        - ip route replace default via 10.40.0.1
+    br-campus:
+      kind: bridge
+
+  links:
+    # LAN1: the VRRP protected host segment (multi access, so it rides a bridge)
+    - endpoints: ["r1:eth1", "br-campus:brp1"]
+    - endpoints: ["r2:eth1", "br-campus:brp2"]
+    - endpoints: ["h1:eth1", "br-campus:brp3"]
+    # Area 0 point to point links
+    - endpoints: ["r1:eth2", "r3:eth1"]
+    - endpoints: ["r2:eth2", "r3:eth2"]
+    # Area 1
+    - endpoints: ["r3:eth3", "r4:eth1"]
+    - endpoints: ["r4:eth2", "h2:eth1"]
