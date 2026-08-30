@@ -39,14 +39,63 @@ jobs:
             full=$(sudo docker exec clab-bastion-campus-r1 vtysh -c 'show ip ospf neighbor json' \
               | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(1 for l in d.get('neighbors',{}).values() for e in l if (e.get('nbrState') or e.get('converged') or '').startswith('Full')))" \
               2>/dev/null || echo 0)
-            if [ "$full" = "2" ]; then echo "converged after about $((i*10))s"; exit 0; fi
+            if [ "$full" = "2" ]; then echo "OSPF converged after about $((i*10))s"; break; fi
             sleep 10
+            if [ "$i" = "18" ]; then echo "OSPF did not converge within 180s"; exit 1; fi
           done
-          echo "did not converge within 180s"; exit 1
+          # VRRP preemption must also settle: recording the demo GIF surfaced a
+          # race where the e2e ping ran while r2 could still source frames from
+          # the virtual MAC (h1's packets detoured via r2, which answered with
+          # an ICMP redirect and one lost packet). Checking r1 alone is not
+          # enough during the handover tail, so gate on both roles plus settle.
+          for i in $(seq 1 15); do
+            m1=$(sudo docker exec clab-bastion-campus-r1 vtysh -c 'show vrrp' \
+              | grep -E 'Status \(v4\)' | grep -c Master || true)
+            b2=$(sudo docker exec clab-bastion-campus-r2 vtysh -c 'show vrrp' \
+              | grep -E 'Status \(v4\)' | grep -c Backup || true)
+            if [ "$m1" = "1" ] && [ "$b2" = "1" ]; then
+              echo "VRRP settled: r1 Master, r2 Backup"; sleep 3; exit 0
+            fi
+            sleep 3
+          done
+          echo "VRRP roles did not settle within 45s"; exit 1
       - name: validation suite against the live lab
-        run: sudo make campus-test
+        shell: bash
+        run: sudo make campus-test 2>&1 | tee /tmp/campus-test.txt
       - name: drift check golden vs running configs
         run: sudo make campus-drift
+      - name: collect evidence and write job summary
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p /tmp/evidence
+          for r in r1 r2 r3 r4; do
+            sudo docker exec clab-bastion-campus-$r vtysh -c 'show ip ospf neighbor' \
+              > /tmp/evidence/${r}_ospf_neighbors.txt 2>/dev/null || true
+            sudo docker exec clab-bastion-campus-$r vtysh -c 'show ip route' \
+              > /tmp/evidence/${r}_routes.txt 2>/dev/null || true
+          done
+          sudo docker exec clab-bastion-campus-r1 vtysh -c 'show vrrp' \
+            > /tmp/evidence/r1_vrrp.txt 2>/dev/null || true
+          sudo docker exec clab-bastion-campus-r2 vtysh -c 'show vrrp' \
+            > /tmp/evidence/r2_vrrp.txt 2>/dev/null || true
+          {
+            echo "### module 1: campus-core, deployed live in this runner"
+            echo '```'
+            tail -n 16 /tmp/campus-test.txt 2>/dev/null || echo "(no test output)"
+            echo '```'
+            echo "OSPF neighbors on r3 (the ABR sees all three):"
+            echo '```'
+            cat /tmp/evidence/r3_ospf_neighbors.txt 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: upload evidence from this run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: campus-evidence
+          path: /tmp/evidence/
+          if-no-files-found: ignore
       - name: destroy
         if: always()
         run: sudo make campus-destroy || true
@@ -75,9 +124,40 @@ jobs:
           done
           echo "EVPN did not converge within 120s"; exit 1
       - name: validation suite against the live fabric
-        run: sudo make dc-test
+        shell: bash
+        run: sudo make dc-test 2>&1 | tee /tmp/dc-test.txt
       - name: drift check
         run: sudo make dc-drift
+      - name: collect evidence and write job summary
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p /tmp/evidence
+          for n in s1 s2 l1 l2 l3; do
+            sudo docker exec clab-bastion-dc-$n vtysh -c 'show bgp summary' \
+              > /tmp/evidence/${n}_bgp_summary.txt 2>/dev/null || true
+          done
+          sudo docker exec clab-bastion-dc-l1 vtysh -c 'show bgp l2vpn evpn route' \
+            > /tmp/evidence/l1_evpn_routes.txt 2>/dev/null || true
+          sudo docker exec clab-bastion-dc-l1 bridge fdb show br br10 \
+            > /tmp/evidence/l1_bridge_fdb.txt 2>/dev/null || true
+          {
+            echo "### module 3: dc-fabric, deployed live in this runner"
+            echo '```'
+            tail -n 24 /tmp/dc-test.txt 2>/dev/null || echo "(no test output)"
+            echo '```'
+            echo "EVPN routes on leaf1 (type 2 MAC/IP and type 3 IMET):"
+            echo '```'
+            head -n 40 /tmp/evidence/l1_evpn_routes.txt 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: upload evidence from this run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dc-fabric-evidence
+          path: /tmp/evidence/
+          if-no-files-found: ignore
       - name: destroy
         if: always()
         run: sudo make dc-destroy || true

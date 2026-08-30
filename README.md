@@ -16,6 +16,22 @@ monitoring. The [coverage map](#coverage-map-nsa-posting-1261957) below states
 honestly what is demonstrated here, what is cert study, and what is awareness
 level only.
 
+## Watch it work
+
+![Terminal recording: module 1 deploys, converges, passes its 10 test suite, then survives a frozen VRRP master with 89 of 89 pings delivered](docs/demo.gif)
+
+A real recorded run (44s, idle time compressed): deploy module 1, wait for
+OSPF and VRRP to converge, pass the 10 test validation suite, then freeze the
+VRRP master mid ping and watch the backup take over with zero packet loss.
+Recorded by [docs/demo.sh](docs/demo.sh); the raw asciinema cast is committed
+next to it. Recording this demo caught a real convergence race that CI had
+been winning by luck: entry 10 in [WHAT-BROKE.md](WHAT-BROKE.md).
+
+Every push also deploys modules 1 and 3 inside the GitHub Actions runner: the
+[CI runs](https://github.com/Markpelico/BASTION/actions) publish a job summary
+with the live test output and upload the run's state tables (adjacencies,
+routes, VRRP roles, EVPN routes) as downloadable evidence artifacts.
+
 ## Modules
 
 | Module | What it demonstrates | Validation |

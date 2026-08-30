@@ -200,3 +200,34 @@ export capture.
 **Lesson:** do not assume a signal means what you want; check what the daemon
 actually does with it. And bursty exporters need the measurement window shaped
 to the burst, from both directions.
+
+## 10. Recording the demo GIF caught a convergence race the test suite had been winning by luck
+
+**Symptom:** the first take of docs/demo.gif recorded a 9 of 10 test run: the
+end to end ping lost a packet and logged `Redirect Host(New nexthop:
+10.10.0.11)` from r2's address.
+
+**Diagnosis:** the pre test convergence gate waited for OSPF adjacencies only.
+VRRP preemption had not settled yet: r2 was still holding the virtual MAC from
+its head start on boot, so h1's first packets detoured through r2, which
+helpfully answered with an ICMP redirect pointing at r1 (the better LAN next
+hop) while the role flip ate one packet. Every earlier local and CI run had
+simply won this race.
+
+**Fix, round 1:** gate on r1 reporting `Status (v4) Master` before validating.
+That was not enough: take two failed the same way with the gate green. The
+capture logic in the ping output told the story: seq 1 and 2 arrived with ttl
+61 (the r1 path), then seq 3 detoured to r2. During the handover tail, the
+conceding master can still source a frame from the virtual MAC, flipping the
+bridge's learned port back to r2 for up to an advertisement interval after r1
+already reports Master.
+
+**Fix, round 2:** gate on both roles (r1 Master and r2 Backup) plus a 3s
+settle, in docs/demo.sh and the CI workflow. Once r2 is in Backup it sources
+nothing from the virtual MAC, and r1's 1s advertisements keep the bridge FDB
+pinned.
+
+**Lesson:** "converged" is per protocol, not per box, and not even per one
+box's opinion: a handover has two ends, and the gate must observe both. Also,
+a demo recording is a test run: pointing a camera at the system found a flake
+that a green CI history had been hiding.
