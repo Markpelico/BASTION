@@ -63,3 +63,27 @@ wan-drift:
 
 wan-destroy:
 	containerlab destroy -t $(WAN)/topology.clab.yml --cleanup
+
+# ---------------- module 3: dc-fabric ----------------
+DC := $(MODULES)/03-dc-fabric
+
+dc-deploy:
+	python3 tools/generate.py --module 03-dc-fabric
+	containerlab deploy -t $(DC)/topology.clab.yml --reconfigure
+
+dc-test:
+	cd $(DC) && python3 -m pytest tests/ -v
+
+dc-drill-vxlan:
+	bash $(DC)/drills/drill1_vxlan_proof.sh
+
+dc-drill-spine:
+	bash $(DC)/drills/drill2_spine_failure.sh
+
+dc-drills: dc-drill-vxlan dc-drill-spine
+
+dc-drift:
+	python3 tools/driftcheck.py --module 03-dc-fabric --lab clab-bastion-dc
+
+dc-destroy:
+	containerlab destroy -t $(DC)/topology.clab.yml --cleanup

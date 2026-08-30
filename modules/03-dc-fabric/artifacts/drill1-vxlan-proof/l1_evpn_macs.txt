@@ -1,0 +1,14 @@
+
+VNI 10010 #MACs (local and remote) 2
+
+Flags: N=sync-neighs, I=local-inactive, P=peer-active, X=peer-proxy
+MAC               Type   Flags Intf/Remote ES/VTEP                     VLAN  Seq #'s
+aa:c1:ab:e3:84:92 remote       10.255.255.2                                  1/0
+aa:c1:ab:58:fe:f4 local        eth3                                          0/0
+
+VNI 10020 #MACs (local and remote) 2
+
+Flags: N=sync-neighs, I=local-inactive, P=peer-active, X=peer-proxy
+MAC               Type   Flags Intf/Remote ES/VTEP                     VLAN  Seq #'s
+aa:c1:ab:17:df:ee local        eth4                                          0/0
+aa:c1:ab:19:f8:c3 remote       10.255.255.3                                  0/0

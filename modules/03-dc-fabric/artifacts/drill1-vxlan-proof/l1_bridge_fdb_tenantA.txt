@@ -1,0 +1,19 @@
+33:33:00:00:00:01 dev brA self permanent
+01:00:5e:00:00:6a dev brA self permanent
+33:33:00:00:00:6a dev brA self permanent
+01:00:5e:00:00:01 dev brA self permanent
+33:33:ff:00:00:aa dev brA self permanent
+aa:bb:cc:00:00:aa dev brA vlan 1 master brA permanent
+aa:bb:cc:00:00:aa dev brA master brA permanent
+aa:c1:ab:e3:84:92 dev vxlan10010 vlan 1 extern_learn master brA 
+aa:c1:ab:e3:84:92 dev vxlan10010 extern_learn master brA 
+22:cb:61:d2:ff:22 dev vxlan10010 vlan 1 master brA permanent
+22:cb:61:d2:ff:22 dev vxlan10010 master brA permanent
+00:00:00:00:00:00 dev vxlan10010 dst 10.255.255.2 self permanent
+aa:c1:ab:e3:84:92 dev vxlan10010 dst 10.255.255.2 self extern_learn 
+aa:c1:ab:58:fe:f4 dev eth3 master brA 
+aa:c1:ab:6f:7d:c1 dev eth3 vlan 1 master brA permanent
+aa:c1:ab:6f:7d:c1 dev eth3 master brA permanent
+33:33:00:00:00:01 dev eth3 self permanent
+01:00:5e:00:00:01 dev eth3 self permanent
+33:33:ff:6f:7d:c1 dev eth3 self permanent

@@ -1,0 +1,99 @@
+# Config generation variables for module 3: dc-fabric.
+#
+# Underlay: eBGP unnumbered (IPv6 link local sessions, RFC 5549 next hops)
+# on every leaf spine link. Spines share AS 65100; each leaf gets its own AS.
+# Only the loopbacks are announced: they are the VTEP addresses.
+# Overlay: BGP EVPN address family on the same sessions; leaves originate
+# type 2 (MAC/IP) and type 3 (flood list) routes for their VNIs via
+# advertise-all-vni. ECMP across both spines with maximum-paths 2.
+#
+#   loopbacks: sp1 10.255.255.11, sp2 .12, l1 .1, l2 .2, l3 .3
+#   tenant A: VNI 10010, subnet 172.16.1.0/24, anycast gw 172.16.1.1
+#   tenant B: VNI 10020, subnet 172.16.1.0/24 (identical on purpose)
+
+lab: dc
+
+nodes:
+  sp1:
+    role: router
+    router_id: 10.255.255.11
+    loopback: 10.255.255.11/32
+    daemons: [bgpd]
+    bgp:
+      asn: 65100
+      max_paths: 2
+      networks: [10.255.255.11/32]
+      evpn: {}
+      peer_group:
+        name: FABRIC
+        timers: 3 9
+        interfaces: [eth1, eth2, eth3]
+
+  sp2:
+    role: router
+    router_id: 10.255.255.12
+    loopback: 10.255.255.12/32
+    daemons: [bgpd]
+    bgp:
+      asn: 65100
+      max_paths: 2
+      networks: [10.255.255.12/32]
+      evpn: {}
+      peer_group:
+        name: FABRIC
+        timers: 3 9
+        interfaces: [eth1, eth2, eth3]
+
+  l1:
+    role: router
+    router_id: 10.255.255.1
+    loopback: 10.255.255.1/32
+    daemons: [bgpd]
+    bgp:
+      asn: 65101
+      max_paths: 2
+      networks: [10.255.255.1/32]
+      evpn: {advertise_all_vni: true}
+      peer_group:
+        name: FABRIC
+        timers: 3 9
+        interfaces: [eth1, eth2]
+
+  l2:
+    role: router
+    router_id: 10.255.255.2
+    loopback: 10.255.255.2/32
+    daemons: [bgpd]
+    bgp:
+      asn: 65102
+      max_paths: 2
+      networks: [10.255.255.2/32]
+      evpn: {advertise_all_vni: true}
+      peer_group:
+        name: FABRIC
+        timers: 3 9
+        interfaces: [eth1, eth2]
+
+  l3:
+    role: router
+    router_id: 10.255.255.3
+    loopback: 10.255.255.3/32
+    daemons: [bgpd]
+    bgp:
+      asn: 65103
+      max_paths: 2
+      networks: [10.255.255.3/32]
+      evpn: {advertise_all_vni: true}
+      peer_group:
+        name: FABRIC
+        timers: 3 9
+        interfaces: [eth1, eth2]
+
+  hA1:
+    role: host
+  hA2:
+    role: host
+  hB1:
+    role: host
+  hB3:
+    role: host

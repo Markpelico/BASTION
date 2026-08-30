@@ -1,0 +1,8 @@
+Routing entry for 10.255.255.2/32
+  Known via "bgp", distance 20, metric 0, best
+  Last update 00:00:23 ago
+  Flags: Selected 
+  Status: Installed 
+  * fe80::a8c1:abff:fe44:61b5, via eth2, weight 1
+  * fe80::a8c1:abff:fec7:98c5, via eth1, weight 1
+

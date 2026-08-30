@@ -1,0 +1,128 @@
+# Module 3: dc-fabric
+# EVPN-VXLAN spine leaf: 2 spines, 3 leaves, BGP unnumbered underlay,
+# two tenants with fully overlapping subnets, anycast gateways on every leaf.
+#
+# The exec blocks build the Linux side of EVPN on each leaf: a VRF per tenant
+# (the overlapping 172.16.1.0/24 subnets must live in separate routing
+# tables), a bridge per tenant holding the anycast gateway IP and a MAC that
+# is identical on every leaf, and a VXLAN device (learning off: BGP EVPN is
+# the control plane) sourced from the leaf loopback. FRR's advertise-all-vni
+# picks these up from netlink and originates the type 2 and type 3 routes.
+name: bastion-dc
+
+topology:
+  kinds:
+    linux:
+      image: quay.io/frrouting/frr:10.7.1
+
+  nodes:
+    sp1:
+      kind: linux
+      binds: [configs/sp1:/etc/frr]
+    sp2:
+      kind: linux
+      binds: [configs/sp2:/etc/frr]
+
+    l1:
+      kind: linux
+      binds: [configs/l1:/etc/frr]
+      exec:
+        # tenant A
+        - ip link add vrfA type vrf table 1010
+        - ip link set vrfA up
+        - ip link add brA type bridge
+        - ip link set brA address aa:bb:cc:00:00:aa
+        - ip link set brA master vrfA
+        - ip link add vxlan10010 type vxlan id 10010 dstport 4789 local 10.255.255.1 nolearning
+        - ip link set vxlan10010 master brA
+        - bridge link set dev vxlan10010 learning off
+        - ip link set vxlan10010 up
+        - ip link set brA up
+        - ip addr add 172.16.1.1/24 dev brA
+        - ip link set eth3 master brA
+        # tenant B, overlapping subnet, own VRF
+        - ip link add vrfB type vrf table 1020
+        - ip link set vrfB up
+        - ip link add brB type bridge
+        - ip link set brB address aa:bb:cc:00:00:bb
+        - ip link set brB master vrfB
+        - ip link add vxlan10020 type vxlan id 10020 dstport 4789 local 10.255.255.1 nolearning
+        - ip link set vxlan10020 master brB
+        - bridge link set dev vxlan10020 learning off
+        - ip link set vxlan10020 up
+        - ip link set brB up
+        - ip addr add 172.16.1.1/24 dev brB
+        - ip link set eth4 master brB
+    l2:
+      kind: linux
+      binds: [configs/l2:/etc/frr]
+      exec:
+        - ip link add vrfA type vrf table 1010
+        - ip link set vrfA up
+        - ip link add brA type bridge
+        - ip link set brA address aa:bb:cc:00:00:aa
+        - ip link set brA master vrfA
+        - ip link add vxlan10010 type vxlan id 10010 dstport 4789 local 10.255.255.2 nolearning
+        - ip link set vxlan10010 master brA
+        - bridge link set dev vxlan10010 learning off
+        - ip link set vxlan10010 up
+        - ip link set brA up
+        - ip addr add 172.16.1.1/24 dev brA
+        - ip link set eth3 master brA
+    l3:
+      kind: linux
+      binds: [configs/l3:/etc/frr]
+      exec:
+        - ip link add vrfB type vrf table 1020
+        - ip link set vrfB up
+        - ip link add brB type bridge
+        - ip link set brB address aa:bb:cc:00:00:bb
+        - ip link set brB master vrfB
+        - ip link add vxlan10020 type vxlan id 10020 dstport 4789 local 10.255.255.3 nolearning
+        - ip link set vxlan10020 master brB
+        - bridge link set dev vxlan10020 learning off
+        - ip link set vxlan10020 up
+        - ip link set brB up
+        - ip addr add 172.16.1.1/24 dev brB
+        - ip link set eth3 master brB
+
+    # tenant A hosts: same subnet, stretched across l1 and l2
+    hA1:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 172.16.1.101/24 dev eth1
+        - ip route replace default via 172.16.1.1
+    hA2:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 172.16.1.102/24 dev eth1
+        - ip route replace default via 172.16.1.1
+    # tenant B hosts: identical addresses on purpose, isolated by VNI and VRF
+    hB1:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 172.16.1.101/24 dev eth1
+        - ip route replace default via 172.16.1.1
+    hB3:
+      kind: linux
+      image: nicolaka/netshoot:v0.16
+      exec:
+        - ip addr add 172.16.1.102/24 dev eth1
+        - ip route replace default via 172.16.1.1
+
+  links:
+    # leaf to spine fabric (BGP unnumbered runs on these)
+    - endpoints: ["l1:eth1", "sp1:eth1"]
+    - endpoints: ["l1:eth2", "sp2:eth1"]
+    - endpoints: ["l2:eth1", "sp1:eth2"]
+    - endpoints: ["l2:eth2", "sp2:eth2"]
+    - endpoints: ["l3:eth1", "sp1:eth3"]
+    - endpoints: ["l3:eth2", "sp2:eth3"]
+    # host attachments
+    - endpoints: ["hA1:eth1", "l1:eth3"]
+    - endpoints: ["hB1:eth1", "l1:eth4"]
+    - endpoints: ["hA2:eth1", "l2:eth3"]
+    - endpoints: ["hB3:eth1", "l3:eth3"]

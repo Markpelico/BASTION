@@ -24,6 +24,8 @@ NOISE_PREFIXES = (
     "building configuration", "current configuration", "frr version",
     "frr defaults", "hostname", "domainname", "service integrated-vtysh-config",
     "log stdout", "exit", "end", "password", "agentx",
+    # zebra mirrors kernel created VRFs into running config as empty shells
+    "vrf ",
 )
 
 

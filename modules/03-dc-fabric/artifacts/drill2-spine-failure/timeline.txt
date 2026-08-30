@@ -1,0 +1,10 @@
+[05:08:42.498] pre state: l1 ECMP routes and sessions
+[05:08:42.847] starting 40s ping hA1 to hA2 at 5 packets per second
+[05:08:52.853] FAILURE: docker pause sp1 (silent spine death)
+[05:09:07.981] post failure: l1 routes and sessions (hold timer is 9s)
+[05:09:08.341] RECOVERY: docker unpause sp1
+[05:09:23.009] ping finished
+[05:09:35.370] done: artifacts in /mnt/c/Users/Admin/Desktop/BASTION/modules/03-dc-fabric/artifacts/drill2-spine-failure
+--- 172.16.1.102 ping statistics ---
+197 packets transmitted, 197 received, 0% packet loss, time 39985ms
+rtt min/avg/max/mdev = 0.069/0.094/0.158/0.011 ms

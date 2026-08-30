@@ -1,0 +1,3 @@
+VNI        Type VxLAN IF              # MACs   # ARPs   # Remote VTEPs  Tenant VRF      VLAN       BRIDGE                               
+10010      L2   vxlan10010            2        2        1               vrfA            1          brA                                  
+10020      L2   vxlan10020            2        0        1               vrfB            1          brB                                  
